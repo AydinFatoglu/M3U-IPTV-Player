@@ -1,6 +1,6 @@
 # M3U IPTV Player
 
-This repository contains a Python script that implements a simple M3U IPTV player with a graphical user interface (GUI) using the Tkinter library. The player allows you to parse an M3U playlist from a given URL and play the channels using the mpv media player.
+This repository contains a Python script that implements a simple M3U IPTV player with a graphical user interface (GUI) using the Tkinter library. The player allows you to parse an M3U playlist from a given URL and play the channels using the mpv media player. (you need to download from www.mpv.io and place next to the py file)
 
 ## Features
 
