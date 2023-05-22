@@ -1,34 +1,46 @@
-# M3U IPTV Player
+**M3U IPTV Player**
 
-This repository contains a Python script that implements a simple M3U IPTV player with a graphical user interface (GUI) using the Tkinter library. The player allows you to parse an M3U playlist from a given URL and play the channels using the mpv media player. (you need to download from www.mpv.io and place next to the py file)
+This is a Python application that provides a graphical user interface (GUI) for an M3U IPTV player. It allows you to watch streaming channels using an M3U playlist file.
 
 ## Features
 
-- Fetches and parses an M3U file from a provided URL.
-- Displays channel names in a listbox.
-- Plays the selected channel using the mpv media player.
-- Supports playing the previous and next channels.
-- Provides error handling for invalid URLs and missing mpv executable.
+- Enter the server, port, username, and password for your IPTV service.
+- Fetch the M3U playlist file from the specified URL.
+- Parse the playlist file to extract channel names and URLs.
+- Display the channel names in a list on the GUI.
+- Select a channel from the list to watch it.
+- Launch the associated media player (mpv) to play the selected channel.
+- Navigate through the channel list using the previous and next buttons.
+- Save the server, port, username, and password in a configuration file for future use.
+- Terminate the media player process and close the application window.
 
 ## Usage
 
-To use the M3U IPTV Player:
+1. Clone the repository or download the source code.
+2. Install the required dependencies (`tkinter`, `urllib`, `subprocess`, `configparser`, `sys`, `shutil`) if needed.
+3. Run the `m3u_iptv_player.py` script using Python 3.
+4. Enter the server, port, username, and password for your IPTV service in the respective fields.
+5. Click the "Get/Update Channels" button to fetch and parse the M3U playlist.
+6. The channel names will be displayed in a list on the left side of the GUI.
+7. Select a channel from the list by clicking on it.
+8. Click the "Watch Now!" button to launch the media player and start playing the selected channel.
+9. Use the previous and next buttons to navigate through the channel list.
+10. Close the application window to exit the program.
 
-1. Clone the repository or download the `iptv_player.py` file.
-2. Ensure you have Python 3 installed on your system.
-3. Install the required dependencies by running `pip install tkinter`.
-4. Place the `mpv.exe` file next to the `iptv_player.py` script, ensuring it is the executable for the mpv media player.
-5. Run the script using `python iptv_player.py`.
-6. The GUI window will appear.
-7. Enter the M3U URL in the provided entry field and click "Parse M3U URL" to fetch and parse the channels.
-8. Select a channel from the listbox and click "Watch Selected Channel" to play it.
-9. Use the "<< Channel" and "Channel >>" buttons to navigate through the channels.
-10. To exit, close the GUI window or press `Ctrl+C` in the terminal.
+Note: Make sure to have the `mpv.exe` file in the same folder as the script or include it in the bundled resources if you are using a distribution package.
 
-## License
+## Dependencies
 
-This project is licensed under the [MIT License](LICENSE).
+The application relies on the following Python packages:
 
-Feel free to customize and enhance the code to suit your specific needs. Contributions are also welcome.
+- `tkinter`: GUI library for Python.
+- `urllib`: Library for URL handling.
+- `subprocess`: Module for managing subprocesses.
+- `configparser`: Module for working with configuration files.
+- `sys`: Module providing access to system-specific parameters and functions.
+- `shutil`: Module for file operations.
 
-**Note:** Ensure that you have the necessary rights and permissions to access and play the channels from the provided M3U URL.
+You can install these dependencies using `pip`:
+
+```shell
+pip install tkinter urllib subprocess configparser
