@@ -3,15 +3,74 @@ import tkinter as tk
 from tkinter import messagebox
 import urllib.request
 import os
+import configparser
+import sys
+import shutil
 
 channels = []  # List to store channel URLs
 current_channel_index = -1  # Index of the currently selected channel
 mpv_process = None  # Process instance of the running mpv
+config_file = "config.ini"  # Name of the INI file
+
+# Create a configparser instance
+config = configparser.ConfigParser()
+
+
+def save_config(server, port, username, password):
+    # Create the config file if it doesn't exist
+    if not os.path.exists(config_file):
+        config.add_section("Settings")
+
+    # Set the options in the config file
+    config.set("Settings", "server", server)
+    config.set("Settings", "port", port)
+    config.set("Settings", "username", username)
+    config.set("Settings", "password", password)
+
+    # Save the config to the INI file
+    with open(config_file, "w") as configfile:
+        config.write(configfile)
+
+
+def read_config():
+    # Read the config file
+    config.read(config_file)
+
+    # Check if the options are present in the config file
+    if "Settings" in config:
+        server = config.get("Settings", "server", fallback="")
+        port = config.get("Settings", "port", fallback="")
+        username = config.get("Settings", "username", fallback="")
+        password = config.get("Settings", "password", fallback="")
+
+        return server, port, username, password
+
+    return "", "", "", ""
+
+
+def extract_mpv_exe():
+    # Get the temp directory where the script is running
+    temp_dir = sys._MEIPASS
+
+    # Specify the path to the bundled mpv.exe file
+    bundled_mpv_path = os.path.join(temp_dir, "mpv.exe")
+
+    # Specify the destination path to extract mpv.exe
+    extracted_mpv_path = os.path.join(os.path.dirname(__file__), "mpv.exe")
+
+    # Extract the mpv.exe file from the bundled resource
+    shutil.copy2(bundled_mpv_path, extracted_mpv_path)
 
 
 def parse_m3u_url():
-    # Get the M3U URL from the entry widget
-    m3u_url = entry.get()
+    # Get the server, port, username, and password from the entry widgets
+    server = server_entry.get()
+    port = port_entry.get()
+    username = username_entry.get()
+    password = password_entry.get()
+
+    # Construct the M3U URL using the provided information
+    m3u_url = f"{server}:{port}/get.php?username={username}&password={password}&type=m3u&output=ts"
 
     try:
         # Fetch the M3U file from the URL
@@ -42,6 +101,9 @@ def parse_m3u_url():
         global current_channel_index
         current_channel_index = -1
 
+        # Save the server, port, username, and password to the INI file
+        save_config(server, port, username, password)
+
     except Exception as e:
         messagebox.showerror("Error", str(e))
 
@@ -55,8 +117,14 @@ def embed_mpv_window():
 
     # Check if mpv.exe file exists in the same folder as the script
     mpv_path = os.path.join(os.path.dirname(__file__), "mpv.exe")
+
+    # If mpv.exe doesn't exist, extract it from the bundled resource
     if not os.path.isfile(mpv_path):
-        messagebox.showerror("Error", "mpv.exe not found. Please place the 'mpv.exe' file next to the script file.")
+        extract_mpv_exe()
+
+    # Check again if mpv.exe file exists after extraction
+    if not os.path.isfile(mpv_path):
+        messagebox.showerror("Error", "mpv.exe not found. Please ensure it is bundled or place it next to the script file.")
         return
 
     # Terminate the existing mpv process if it is running
@@ -73,9 +141,9 @@ def embed_mpv_window():
     mpv_process = subprocess.Popen(mpv_args)
 
 
-def play_next_channel():
+def play_previous_channel():
     global current_channel_index
-    current_channel_index = (current_channel_index + 1) % len(channels)
+    current_channel_index = (current_channel_index - 1) % len(channels)
     listbox.select_clear(0, tk.END)
     listbox.select_set(current_channel_index)
     listbox.activate(current_channel_index)
@@ -84,9 +152,9 @@ def play_next_channel():
     embed_mpv_window()
 
 
-def play_previous_channel():
+def play_next_channel():
     global current_channel_index
-    current_channel_index = (current_channel_index - 1) % len(channels)
+    current_channel_index = (current_channel_index + 1) % len(channels)
     listbox.select_clear(0, tk.END)
     listbox.select_set(current_channel_index)
     listbox.activate(current_channel_index)
@@ -116,7 +184,7 @@ window.attributes('-topmost', 1)
 
 # Calculate the center position of the window
 window_width = 400  # adjust as needed
-window_height = 350  # adjust as needed
+window_height = 450  # adjust as needed
 screen_width = window.winfo_screenwidth()
 screen_height = window.winfo_screenheight()
 x = (screen_width - window_width) // 2
@@ -125,38 +193,63 @@ y = (screen_height - window_height) // 2
 # Set the window size and position
 window.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
-# Create a label and entry for the M3U URL
-label = tk.Label(window, text="M3U URL:")
-label.pack()
-entry = tk.Entry(window)
-entry.pack()
+# Create a frame to hold the labels and entry widgets
+entry_frame = tk.Frame(window)
+entry_frame.pack()
 
-# Set the initial text of the entry widget
-entry.insert(0, "")  # Replace with the actual M3U URL
+# Create labels and entry widgets for server, port, username, and password
+server_label = tk.Label(entry_frame, text="Server:")
+server_label.pack()
+server_entry = tk.Entry(entry_frame)
+server_entry.pack()
 
-# Create a right-click menu for the entry widget
-entry_menu = tk.Menu(window, tearoff=0)
-entry_menu.add_command(label="Cut", accelerator="Ctrl+X", command=lambda: window.focus_get().event_generate("<<Cut>>"))
-entry_menu.add_command(label="Copy", accelerator="Ctrl+C", command=lambda: window.focus_get().event_generate("<<Copy>>"))
-entry_menu.add_command(label="Paste", accelerator="Ctrl+V", command=lambda: window.focus_get().event_generate("<<Paste>>"))
+port_label = tk.Label(entry_frame, text="Port:")
+port_label.pack()
+port_entry = tk.Entry(entry_frame)
+port_entry.pack()
 
-# Bind the right-click menu to the entry widget
-entry.bind("<Button-3>", lambda e: entry_menu.post(e.x_root, e.y_root))
+username_label = tk.Label(entry_frame, text="Username:")
+username_label.pack()
+username_entry = tk.Entry(entry_frame)
+username_entry.pack()
+
+password_label = tk.Label(entry_frame, text="Password:")
+password_label.pack()
+password_entry = tk.Entry(entry_frame, show="*")
+password_entry.pack()
+
+# Read the server, port, username, and password from the INI file, if available
+server, port, username, password = read_config()
+server_entry.insert(0, server)
+port_entry.insert(0, port)
+username_entry.insert(0, username)
+password_entry.insert(0, password)
 
 # Create a button to parse the M3U URL
-parse_button = tk.Button(window, text="Parse M3U URL", command=parse_m3u_url)
+parse_button = tk.Button(window, text="Get/Update Channels", command=parse_m3u_url)
 parse_button.pack()
 
+# Create a frame to hold the listbox and scrollbar
+listbox_frame = tk.Frame(window)
+listbox_frame.pack(fill=tk.BOTH, expand=True)
+
 # Create a listbox to display channel names
-listbox = tk.Listbox(window, width=50)
-listbox.pack()
+listbox = tk.Listbox(listbox_frame, width=50)
+
+# Create a vertical scrollbar and associate it with the listbox
+scrollbar = tk.Scrollbar(listbox_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+listbox.config(yscrollcommand=scrollbar.set)
+scrollbar.config(command=listbox.yview)
+
+listbox.pack(fill=tk.BOTH, expand=True)
 
 # Create a frame to hold the buttons
 button_frame = tk.Frame(window)
 button_frame.pack()
 
 # Create a button to embed the mpv window
-embed_button = tk.Button(button_frame, text="Watch Selected Channel", command=embed_mpv_window)
+embed_button = tk.Button(button_frame, text="Watch Now!", command=embed_mpv_window)
 embed_button.pack(side="left")
 
 # Create a button to play the previous channel
